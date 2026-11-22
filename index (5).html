@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey</title>
+
+    <style>
+        body {
+            background-color: #080808;
+            color: #c7c7c7;
+            font-family: monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            transition: background 1s;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.025) 3px
+            );
+            pointer-events: none;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: url("images/flowery.jpg") center / cover no-repeat;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .header {
+            color: #555;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: normal;
+            letter-spacing: 2px;
+            color: #dedede;
+            margin-bottom: 40px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background: #aaa;
+            margin-left: 5px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #444;
+            width: 80%;
+            padding: 12px;
+            color: #ddd;
+            font-family: monospace;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+        }
+
+        input:focus {
+            border-bottom: 1px solid #888;
+        }
+
+        input::placeholder {
+            color: #444;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            padding: 10px 25px;
+            margin-top: 25px;
+            font-family: monospace;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            border-color: #aaa;
+            color: white;
+        }
+
+        #result {
+            margin-top: 35px;
+            min-height: 30px;
+        }
+
+        #result img {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            margin-top: 20px;
+            filter: brightness(0.85);
+            animation: appear 2s;
+        }
+
+        #message {
+            color: #aaa;
+            letter-spacing: 2px;
+            font-size: 16px;
+            animation: appear 2s;
+        }
+
+        .status {
+            font-size: 11px;
+            color: #333;
+            margin-top: 60px;
+            letter-spacing: 2px;
+        }
+
+        @keyframes appear {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* ---------- GASTER CRASH SEQUENCE ---------- */
+
+        /* stage 1: the page starts to tear itself apart */
+        body.glitch #main { animation: shake 0.12s infinite steps(1); }
+        body.glitch .header,
+        body.glitch h1,
+        body.glitch .status,
+        body.glitch input {
+            text-shadow: 3px 0 #f0f, -3px 0 #0ff;
+            color: #fff;
+        }
+
+        @keyframes shake {
+            0%   { transform: translate(0, 0); }
+            25%  { transform: translate(-7px, 3px) skewX(3deg); }
+            50%  { transform: translate(6px, -4px); }
+            75%  { transform: translate(-3px, -3px) skewX(-4deg); }
+        }
+
+        #noise {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9;
+            opacity: 0;
+            pointer-events: none;
+            image-rendering: pixelated;
+        }
+
+        /* stage 2: CRT shutdown */
+        #main.collapse { animation: crt 0.7s forwards cubic-bezier(.7, 0, .3, 1); }
+
+        @keyframes crt {
+            0%   { transform: scale(1, 1); filter: brightness(1); }
+            60%  { transform: scale(1, 0.004); filter: brightness(6); }
+            100% { transform: scale(0, 0.004); filter: brightness(12); opacity: 0; }
+        }
+
+        /* stage 3: the error screen */
+        .crash {
+            position: fixed;
+            inset: 0;
+            background: black;
+            color: #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            font-size: 15px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .crash:not(.hidden) { animation: flash 0.7s; }
+
+        @keyframes flash {
+            0%   { background: #fff; }
+            100% { background: #000; }
+        }
+
+        .crash > * { position: relative; z-index: 1; }
+
+        #dump {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            margin: 0;
+            overflow: hidden;
+            color: #1c1c1c;
+            font-size: 11px;
+            line-height: 1.3;
+            text-align: left;
+            white-space: pre;
+        }
+
+        .crash h2 {
+            font-size: 36px;
+            font-weight: normal;
+            letter-spacing: 8px;
+            margin: 0 0 20px;
+        }
+
+        .crash.muted h2,
+        .crash.muted #line,
+        .crash.muted #code { visibility: hidden; }
+
+        .crash h2::before,
+        .crash h2::after {
+            content: attr(data-text);
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            mix-blend-mode: screen;
+        }
+
+        .crash h2.g { text-shadow: 2px 0 rgba(255, 0, 255, 0.7), -2px 0 rgba(0, 255, 255, 0.7); }
+
+        .crash h2.g::before {
+            opacity: 1;
+            color: #f0f;
+            transform: translateX(var(--dx1, 0));
+            clip-path: inset(var(--t1, 0%) 0 var(--b1, 100%) 0);
+        }
+
+        .crash h2.g::after {
+            opacity: 1;
+            color: #0ff;
+            transform: translateX(var(--dx2, 0));
+            clip-path: inset(var(--t2, 0%) 0 var(--b2, 100%) 0);
+        }
+
+        .crash p {
+            color: #666;
+            margin: 6px 0;
+            min-height: 1.3em;
+        }
+
+        #code { color: #999; letter-spacing: 3px; }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body.glitch #main { animation: none; }
+        }
+
+        /* ---------- polish ---------- */
+        body { min-height: 100dvh; }
+        .container { animation: appear 1.8s; }
+        #message { animation: none; min-height: 1.4em; }
+        #result img { background: #111; }
+
+        button:focus-visible,
+        input:focus-visible {
+            outline: 1px solid #aaa;
+            outline-offset: 4px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .cursor, .container, #result img { animation: none; }
+        }
+    </style>
+</head>
+
+<body>
+
+<canvas id="noise"></canvas>
+<div id="yt" style="position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0.01;pointer-events:none;"></div>
+
+<div class="container" id="main">
+
+    <div class="header">
+        ARCHIVE_25 // VESPER
+    </div>
+
+    <h1>
+        What is a star to you?
+        <span class="cursor"></span>
+    </h1>
+
+    <input
+        type="text"
+        id="answer"
+        placeholder="Enter response..."
+        autocomplete="off"
+        aria-label="Response"
+        autofocus
+    >
+
+    <br>
+
+    <button onclick="submitAnswer()">SUBMIT</button>
+
+    <div id="result" aria-live="polite"></div>
+
+    <div class="status" id="status">
+        CONNECTION: ESTABLISHED
+    </div>
+
+</div>
+
+<div id="crashScreen" class="crash hidden">
+    <pre id="dump"></pre>
+    <h2 data-text="FATAL ERROR">FATAL ERROR</h2>
+    <p id="line"></p>
+    <p id="code"></p>
+</div>
+
+<script>
+
+// ---------- GASTER CRASH ----------
+
+const GLYPHS = "☜☼☟✌✋☠❄☝☞✍♋♐♒⚐☹♏";
+const noiseCanvas = document.getElementById("noise");
+const noiseCtx = noiseCanvas.getContext("2d");
+noiseCanvas.width = 192;
+noiseCanvas.height = 108;
+let crashed = false;
+
+// ---------- BACKGROUND MUSIC ----------
+
+const SONG_ID = "mHOkkDmsTvo";
+const MUSIC_VOLUME = 40;
+let ytPlayer = null;
+let musicWanted = false;
+
+const ytTag = document.createElement("script");
+ytTag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(ytTag);
+
+function onYouTubeIframeAPIReady() {
+    ytPlayer = new YT.Player("yt", {
+        videoId: SONG_ID,
+        playerVars: { loop: 1, playlist: SONG_ID, controls: 0, disablekb: 1, playsinline: 1 },
+        events: {
+            onReady: () => {
+                ytPlayer.setVolume(MUSIC_VOLUME);
+                if (musicWanted) ytPlayer.playVideo();
+            },
+            onStateChange: e => {
+                if (e.data === YT.PlayerState.ENDED) ytPlayer.playVideo();
+            }
+        }
+    });
+}
+
+// browsers only allow audio after a click or keypress
+function startMusic() {
+    musicWanted = true;
+    if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+}
+["pointerdown", "keydown"].forEach(ev =>
+    document.addEventListener(ev, startMusic, { once: true })
+);
+
+function fadeOutMusic() {
+    if (!ytPlayer || !ytPlayer.setVolume) return;
+    let v = MUSIC_VOLUME;
+    const fade = setInterval(() => {
+        v -= 2;
+        if (v <= 0) { ytPlayer.pauseVideo(); clearInterval(fade); }
+        else ytPlayer.setVolume(v);
+    }, 100);
+}
+
+function scramble(text, p) {
+    return [...text].map(c =>
+        c !== " " && Math.random() < p
+            ? GLYPHS[Math.random() * GLYPHS.length | 0]
+            : c
+    ).join("");
+}
+
+function drawNoise(power) {
+    const img = noiseCtx.createImageData(192, 108);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+        d[i] = d[i + 1] = d[i + 2] = Math.random() * 255 * power;
+        d[i + 3] = 255;
+    }
+    noiseCtx.putImageData(img, 0, 0);
+    const colors = ["#f0f", "#0ff", "#fff", "#000"];
+    for (let k = 0; k < power * 8; k++) {
+        noiseCtx.fillStyle = colors[Math.random() * 4 | 0];
+        noiseCtx.fillRect(0, Math.random() * 108, 192, 1 + Math.random() * 5);
+    }
+}
+
+function crashSound() {
+    try {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        const t = ac.currentTime;
+        const len = ac.sampleRate * 3.4;
+        const buf = ac.createBuffer(1, len, ac.sampleRate);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (Math.random() < 0.5 ? 1 : 0.2);
+
+        const src = ac.createBufferSource();
+        const filter = ac.createBiquadFilter();
+        const gain = ac.createGain();
+        src.buffer = buf;
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(300, t);
+        filter.frequency.exponentialRampToValueAtTime(6000, t + 2.6);
+        gain.gain.setValueAtTime(0.02, t);
+        gain.gain.linearRampToValueAtTime(0.22, t + 2.6);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 3.4);
+        src.connect(filter).connect(gain).connect(ac.destination);
+        src.start(t);
+
+        const osc = ac.createOscillator();
+        const og = ac.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(140, t);
+        osc.frequency.exponentialRampToValueAtTime(28, t + 3.4);
+        og.gain.setValueAtTime(0.0001, t);
+        og.gain.linearRampToValueAtTime(0.12, t + 2.6);
+        og.gain.exponentialRampToValueAtTime(0.0001, t + 3.4);
+        osc.connect(og).connect(ac.destination);
+        osc.start(t);
+        osc.stop(t + 3.5);
+    } catch (e) {}
+}
+
+function typeText(el, text, speed, done) {
+    let i = 0;
+    (function next() {
+        el.textContent = text.slice(0, ++i);
+        if (i < text.length) setTimeout(next, speed + Math.random() * 40);
+        else if (done) done();
+    })();
+}
+
+function showCrash() {
+    const dump = document.getElementById("dump");
+    const code = document.getElementById("code");
+    const screen = document.getElementById("crashScreen");
+    const rows = [];
+
+    screen.classList.add("muted");
+    document.getElementById("line").textContent = "Connection terminated.";
+    code.textContent = "ERROR CODE: 6666666";
+    screen.classList.remove("hidden");
+
+    setInterval(() => {
+        const bytes = Array.from({ length: 24 }, () =>
+            (Math.random() * 256 | 0).toString(16).padStart(2, "0")).join(" ");
+        rows.push((Math.random() * 0xffff | 0).toString(16).padStart(4, "0") + "  " + bytes);
+        if (rows.length > 60) rows.shift();
+        dump.textContent = rows.join("\n");
+    }, 90);
+
+    // the text is drawn all at once, flickers through a few unstable frames, then holds perfectly still
+    [[900, false], [970, true], [1030, false], [1150, true], [1200, false]].forEach(([t, hide]) =>
+        setTimeout(() => screen.classList.toggle("muted", hide), t));
+
+    // from here on the screen is unstable: random bursts of glitching with calm gaps between
+    setTimeout(glitchBurst, 1800);
+    setTimeout(() => document.getElementById("hint").style.opacity = 1, 6000);
+}
+
+const ERR_TEXT = {
+    h2: "FATAL ERROR",
+    line: "Connection terminated.",
+    code: "ERROR CODE: 6666666"
+};
+
+function glitchFrame() {
+    const screen = document.getElementById("crashScreen");
+    const h2 = screen.querySelector("h2");
+    const line = document.getElementById("line");
+    const code = document.getElementById("code");
+    const r = Math.random;
+
+    // color-split slices on the title
+    const t1 = r() * 85, t2 = r() * 85;
+    h2.style.setProperty("--dx1", (r() - 0.5) * 44 + "px");
+    h2.style.setProperty("--dx2", (r() - 0.5) * 44 + "px");
+    h2.style.setProperty("--t1", t1 + "%");
+    h2.style.setProperty("--b1", Math.max(0, 100 - t1 - 8 - r() * 24) + "%");
+    h2.style.setProperty("--t2", t2 + "%");
+    h2.style.setProperty("--b2", Math.max(0, 100 - t2 - 8 - r() * 24) + "%");
+    h2.classList.add("g");
+
+    // lines get thrown sideways and skewed
+    [h2, line, code].forEach(el => {
+        el.style.transform = r() < 0.55
+            ? `translateX(${(r() - 0.5) * 70}px) skewX(${(r() - 0.5) * 24}deg)`
+            : "";
+    });
+
+    // characters corrupt
+    h2.textContent = h2.dataset.text = r() < 0.3 ? scramble(ERR_TEXT.h2, 0.35) : ERR_TEXT.h2;
+    line.textContent = r() < 0.4 ? scramble(ERR_TEXT.line, 0.3) : ERR_TEXT.line;
+    code.textContent = r() < 0.4 ? scramble(ERR_TEXT.code, 0.4) : ERR_TEXT.code;
+
+    // and sometimes the whole thing drops out for a frame
+    screen.classList.toggle("muted", r() < 0.1);
+}
+
+function glitchClear() {
+    const screen = document.getElementById("crashScreen");
+    const h2 = screen.querySelector("h2");
+    const line = document.getElementById("line");
+    const code = document.getElementById("code");
+
+    h2.classList.remove("g");
+    [h2, line, code].forEach(el => el.style.transform = "");
+    h2.textContent = h2.dataset.text = ERR_TEXT.h2;
+    line.textContent = ERR_TEXT.line;
+    code.textContent = ERR_TEXT.code;
+    screen.classList.remove("muted");
+}
+
+function glitchBurst() {
+    let frames = 3 + (Math.random() * 8 | 0);
+    (function step() {
+        if (frames-- > 0) {
+            glitchFrame();
+            setTimeout(step, 40 + Math.random() * 70);
+        } else {
+            glitchClear();
+            setTimeout(glitchBurst, 600 + Math.random() * 2400);
+        }
+    })();
+}
+
+function gasterCrash() {
+    if (crashed) return;
+    crashed = true;
+
+    const main = document.getElementById("main");
+    const h1 = main.querySelector("h1");
+    const status = document.getElementById("status");
+    const original = h1.textContent.trim();
+    document.getElementById("answer").disabled = true;
+
+    document.body.classList.add("glitch");
+    crashSound();
+    fadeOutMusic();
+
+    // stage 1: corruption builds for 2.6s
+    let elapsed = 0;
+    const loop = setInterval(() => {
+        elapsed += 50;
+        const p = Math.min(elapsed / 2600, 1);
+        h1.textContent = scramble(original, p);
+        status.textContent = "CONNECTION: " + scramble("ESTABLISHED", Math.min(p * 1.3, 1));
+        noiseCanvas.style.opacity = Math.random() > 0.3 ? p * 0.85 : 0;
+        drawNoise(p);
+        document.body.style.filter = Math.random() < p * 0.3 ? "invert(1)" : "";
+    }, 50);
+
+    // stage 2: CRT shutdown
+    setTimeout(() => {
+        clearInterval(loop);
+        noiseCanvas.style.opacity = 0;
+        document.body.classList.remove("glitch");
+        document.body.style.filter = "";
+        main.classList.add("collapse");
+    }, 2600);
+
+    // stage 3: darkness, then the error screen
+    setTimeout(() => {
+        main.style.display = "none";
+        document.body.style.background = "black";
+    }, 3300);
+
+    setTimeout(showCrash, 4200);
+}
+
+// ---------- SURVEY ----------
+
+// load every image up front so responses appear instantly
+["guitar", "tree", "saklas", "bunny", "spiderlily", "friend", "flowers", "hyperion"]
+    .forEach(name => { new Image().src = `images/${name}.jpg`; });
+
+// types a response out one character at a time
+let typingId = 0;
+function typeInto(el, text) {
+    const id = ++typingId;
+    let i = 0;
+    (function next() {
+        if (id !== typingId) return;
+        el.textContent = text.slice(0, ++i);
+        if (i < text.length) setTimeout(next, 35 + Math.random() * 35);
+    })();
+}
+
+function submitAnswer() {
+
+    let answer = document.getElementById("answer").value
+        .toLowerCase()
+        .trim();
+
+    if (!answer) return;
+
+    let result = document.getElementById("result");
+    const has = w => new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(answer);
+
+    result.innerHTML = "";
+
+    let message = "";
+    let image = "";
+
+    // GASTER
+    if (answer.includes("gaster")) {
+        gasterCrash();
+        return;
+    }
+
+    // BUNEA / MIFAJUJU
+    else if (
+        has("bunea") ||
+        has("mifajuju")
+    ) {
+        message = "You would want it to be that easy, flowerboy";
+    }
+
+    // GAS GIANT
+    else if (has("gas giant")) {
+        message = "Barbulescu...";
+    }
+
+    // NICOLA
+    else if (has("nicola")) {
+        message = "50/50";
+    }
+
+    // ELISE
+    else if (has("elise")) {
+        message = "The cards speak of your demise";
+    }
+
+    // KRIS
+    else if (has("kris")) {
+        message = "You can never wash it all away";
+    }
+
+    // ROARING KNIGHT
+    else if (
+        has("roaring knight") ||
+        answer === "knight" ||
+        has("the knight")
+    ) {
+        message = "Cold Water";
+    }
+
+    // NOELLE
+    else if (has("noelle")) {
+        message = "Freezing";
+    }
+
+    // DESS
+    else if (has("dess")) {
+        message = "appearance";
+    }
+
+    // RALSEI
+    else if (has("ralsei")) {
+        message = "Passover";
+    }
+
+    // SUSIE
+    else if (has("susie")) {
+        message = "Two lovers standing at the edge of the cauldron of hell.";
+    }
+
+    // REVAN
+    else if (has("revan")) {
+        message = "In between";
+    }
+
+    // ERAM
+    else if (has("eram")) {
+        message = "You can still hear them scream";
+    }
+
+    // SUKUNA
+    else if (has("sukuna")) {
+        image = "images/guitar.jpg";
+    }
+
+    // GOJO
+    else if (has("gojo")) {
+        message = "honor";
+    }
+
+    // YOU ARE / YOU
+    else if (
+        answer === "you" ||
+        has("you are")
+    ) {
+        message = "Majoring in the minors";
+    }
+
+    // BEST FRIEND / FRIEND
+    else if (
+        has("best friend") ||
+        has("friend")
+    ) {
+        message = "Here come the...";
+    }
+
+    // CONFLUENCE
+    else if (has("confluence")) {
+        image = "images/tree.jpg";
+    }
+
+    // YURI
+    else if (has("yuri")) {
+        message = "Fine Taste";
+    }
+
+    // YAOI
+    else if (has("yaoi")) {
+        image = "images/saklas.jpg";
+    }
+
+    // BUNNY
+    else if (has("bunny")) {
+        image = "images/bunny.jpg";
+    }
+
+    // DELTARUNE
+    else if (has("deltarune")) {
+        message = "one day";
+    }
+
+    // ANGEL
+    else if (has("angel")) {
+        image = "images/spiderlily.jpg";
+    }
+
+    // NOTHING / VOID
+    else if (
+        has("nothing") ||
+        has("black hole") ||
+        has("don't care") ||
+        has("dont care") ||
+        has("don't know") ||
+        has("dont know") ||
+        has("void")
+    ) {
+        image = "images/friend.jpg";
+    }
+
+    // LOVE
+    else if (
+        has("my love") ||
+        has("lover") ||
+        has("girlfriend") ||
+        has("love")
+    ) {
+        image = "images/flowers.jpg";
+    }
+
+    // VENUS / LUCIFER
+    else if (
+        has("venus") ||
+        has("lucifer")
+    ) {
+        image = "images/hyperion.jpg";
+    }
+
+    // UNKNOWN ANSWER
+    else {
+        message = "Interesting...";
+    }
+
+    // DISPLAY RESULT
+
+    if (image !== "") {
+        const img = new Image();
+        img.alt = "Response";
+        img.onerror = () => { result.textContent = ""; };
+        img.src = image;
+        result.appendChild(img);
+    }
+    else {
+        const msg = document.createElement("p");
+        msg.id = "message";
+        result.appendChild(msg);
+        typeInto(msg, message);
+    }
+
+    const input = document.getElementById("answer");
+    input.focus();
+    input.select();
+
+}
+
+// ENTER KEY
+document.getElementById("answer").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        submitAnswer();
+    }
+});
+
+</script>
+
+</body>
+</html>
